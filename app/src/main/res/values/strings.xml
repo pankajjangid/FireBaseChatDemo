@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">FireBase Chat Demo</string>
+    <string name="loading">Loading...please wait</string>
+</resources>
