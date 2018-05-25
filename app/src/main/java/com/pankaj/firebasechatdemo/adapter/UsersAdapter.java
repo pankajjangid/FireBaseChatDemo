@@ -94,14 +94,14 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> 
             @Override
             public void onClick(View v) {
                 //send this user id to chat messages activity
-                goToUpdateActivity(user.getUserId());
+                goToUpdateActivity(user.getUserId(),user.getDisplayName());
             }
         });
 
 
     }
 
-    private void goToUpdateActivity(String personId){
+    private void goToUpdateActivity(String personId,String displayName){
         Intent goToUpdate = new Intent(mContext, ChatActivity.class);
         goToUpdate.putExtra("USER_ID", personId);
         mContext.startActivity(goToUpdate);

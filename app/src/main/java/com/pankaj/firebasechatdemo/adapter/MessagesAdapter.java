@@ -5,13 +5,18 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.pankaj.firebasechatdemo.R;
 import com.pankaj.firebasechatdemo.acitivitys.ChatActivity;
 import com.pankaj.firebasechatdemo.model.ChatMessage;
 import com.pankaj.firebasechatdemo.model.User;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -42,7 +47,24 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
 
+        if (mMessagesList.get(position).isSender())
+            holder.userName.setText(mMessagesList.get(position).getSenderName());
+        else
+            holder.userName.setText(mMessagesList.get(position).getReceiverName());
         holder.chatMsgTextView.setText(mMessagesList.get(position).getMessage());
+
+        if (mMessagesList.get(position).getImageUrl().equals("")){
+            holder.chatMsgTextView.setVisibility(View.VISIBLE);
+            holder.chatMsgImageView.setVisibility(View.GONE);
+        }else {
+
+            holder.chatMsgTextView.setVisibility(View.GONE);
+            holder.chatMsgImageView.setVisibility(View.VISIBLE);
+            Picasso.get().load(mMessagesList.get(position).getImageUrl()).placeholder(R.drawable.progress_animation).into(holder.chatMsgImageView);
+
+        }
+
+
 
     }
 
@@ -64,11 +86,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
     public class  ViewHolder  extends RecyclerView.ViewHolder{
-        TextView chatMsgTextView;
+        TextView chatMsgTextView,userName;
+        ImageView chatMsgImageView;
         public ViewHolder(View itemView) {
             super(itemView);
 
             chatMsgTextView = itemView.findViewById(R.id.chatMsgTextView);
+            userName = itemView.findViewById(R.id.userName);
+            chatMsgImageView = itemView.findViewById(R.id.chatMsgImageView);
         }
     }
 }

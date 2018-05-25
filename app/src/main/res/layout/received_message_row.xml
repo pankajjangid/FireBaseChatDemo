@@ -13,12 +13,35 @@
         android:paddingBottom="10dp">
 
         <TextView
+            android:id="@+id/userName"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="100dp"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+
+            android:textColor="@android:color/white" />
+
+        <TextView
             android:id="@+id/chatMsgTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="200dp"
+            android:layout_marginStart="20dp"
+
             android:padding="10dp"
-            android:textColor="@android:color/holo_red_dark" />
+            android:textColor="@android:color/white" />
+        <ImageView
+            android:visibility="gone"
+            android:id="@+id/chatMsgImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="200dp"
+            android:layout_marginStart="20dp"
+
+            android:padding="10dp" />
 
     </LinearLayout>
 

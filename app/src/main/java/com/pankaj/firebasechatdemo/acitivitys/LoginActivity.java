@@ -26,7 +26,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     Button btnLogIn;
     FirebaseAuth firebaseAuth;
     FirebaseAuth.AuthStateListener authStateListener;
-ProgressDialog progressDialog;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

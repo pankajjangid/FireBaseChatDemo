@@ -97,7 +97,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final String Fname= etFirstName.getText().toString();
         final String Lname= etLastName.getText().toString();
 
-        if (Validations.isValidEmail(etEmailId, "Provide your Email first!") && Validations.isValidPassword(etPasswd, "Set correct password")) {
+        if (Validations.isValidEmail(etEmailId, "Provide your Email first!")
+                && Validations.isValidPassword(etPasswd, "Set correct password")) {
             progressDialog.setMessage("Registering Please Wait...");
             progressDialog.show();
 
