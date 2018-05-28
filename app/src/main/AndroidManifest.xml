@@ -27,6 +27,19 @@
             />
         <activity android:name=".acitivitys.ChatActivity" />
         <activity android:name=".acitivitys.UpdateProfileActivity"></activity>
+
+
+        <provider
+            android:name=".image_pic_utils.ExtendedFileProvider"
+            android:authorities="${applicationId}.easyphotopicker.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths"
+                />
+        </provider>
     </application>
 
 </manifest>

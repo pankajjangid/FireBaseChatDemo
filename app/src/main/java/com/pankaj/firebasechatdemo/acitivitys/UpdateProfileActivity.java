@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -29,12 +30,17 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.pankaj.firebasechatdemo.R;
+import com.pankaj.firebasechatdemo.image_pic_utils.DefaultCallback;
+import com.pankaj.firebasechatdemo.image_pic_utils.EasyImage;
 import com.pankaj.firebasechatdemo.model.User;
 import com.pankaj.firebasechatdemo.utils.AppPermissions;
 import com.pankaj.firebasechatdemo.utils.ProgressDialogUtil;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +48,6 @@ import java.util.Map;
 
 public class UpdateProfileActivity extends AppCompatActivity {
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-    static final int REQUEST_IMAGE_PICK = 2;
     private static final int ALL_PERMISSION_REQUEST_CODE = 10;
 
     private ImageView mUserPhotoImageView;
@@ -82,13 +86,21 @@ public class UpdateProfileActivity extends AppCompatActivity {
         /**populate views initially**/
         populateTheViews();
 
+        EasyImage.configuration(this)
+                .setImagesFolderName("EasyImage sample")
+                .setCopyTakenPhotosToPublicGalleryAppFolder(true)
+                .setCopyPickedImagesToPublicGalleryAppFolder(true)
+                .setAllowMultiplePickInGallery(false);
+
         /**listen to imageview click**/
         mUserPhotoImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 if (mRuntimePermission.hasPermission(CAMERA_ALL_PERMISSION)) {
-                   openCameraDialog();
+                   //openCameraDialog();
+                    openCameraDialog();
+
                 } else {
                     mRuntimePermission.requestPermission(UpdateProfileActivity.this, CAMERA_ALL_PERMISSION, ALL_PERMISSION_REQUEST_CODE);
                 }
@@ -106,6 +118,7 @@ public class UpdateProfileActivity extends AppCompatActivity {
                 /**Call the Firebase methods**/
                 try {
                     updateUserName(userDisplayName);
+                    if (byteArray!=null)
                     updateUserPhoto(byteArray);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -119,16 +132,23 @@ public class UpdateProfileActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(UpdateProfileActivity.this);
         builder.setTitle("Change photo");
         builder.setMessage("Choose a method to change photo");
-        builder.setPositiveButton("Upload", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                pickPhotoFromGallery();
-            }
-        });
+
+        if (EasyImage.canDeviceHandleGallery(this)) {
+            //Device has no app that handles gallery intent
+            builder.setPositiveButton("Upload", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    /** Some devices such as Samsungs which have their own gallery app require write permission. Testing is advised! */
+                    EasyImage.openGallery(UpdateProfileActivity.this, 0);
+                }
+            });
+
+        }
         builder.setNegativeButton("Camera", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dispatchTakePictureIntent();
+                EasyImage.openCamera(UpdateProfileActivity.this, 0);
+
             }
         });
         builder.create().show();
@@ -184,46 +204,90 @@ public class UpdateProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
-    }
-
-    private void pickPhotoFromGallery(){
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, REQUEST_IMAGE_PICK);
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            assert extras != null;
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mUserPhotoImageView.setImageBitmap(imageBitmap);
+        EasyImage.handleActivityResult(requestCode, resultCode, data, this, new DefaultCallback() {
+            @Override
+            public void onImagePickerError(Exception e, EasyImage.ImageSource source, int type) {
+                //Some error handling
+                e.printStackTrace();
+            }
 
-            /**convert bitmap to byte array to store in firebase storage**/
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            assert imageBitmap != null;
-            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byteArray = stream.toByteArray();
+            @Override
+            public void onImagesPicked(@NonNull List<File> imageFiles, EasyImage.ImageSource source, int type) {
+               // onPhotosReturned(imageFiles);
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                Bitmap bitmap = null;
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-        }else if(requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK){
-            Bundle extras = data.getExtras();
-            assert extras != null;
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mUserPhotoImageView.setImageBitmap(imageBitmap);
+                switch (source){
 
-            /** convert bitmap to byte array to store in firebase storage**/
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            assert imageBitmap != null;
-            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byteArray = stream.toByteArray();
-        }
+                    case CAMERA:
+
+
+                        //**convert bitmap to byte array to store in firebase storage**//*
+
+                        try {
+                            compreesImageByWidth(imageFiles.get(0));
+
+                            bmOptions = new BitmapFactory.Options();
+                            bitmap = BitmapFactory.decodeFile(imageFiles.get(0).getAbsolutePath(), bmOptions);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+                            Picasso.get()
+                                    .load(imageFiles.get(0))
+                                    .fit()
+                                    .centerCrop()
+                                    .into(mUserPhotoImageView);
+                             byteArray = stream.toByteArray();
+                            break;
+
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    case DOCUMENTS:
+
+                        break;
+
+                    case GALLERY:
+                        try {
+                            compreesImageByWidth(imageFiles.get(0));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        bmOptions = new BitmapFactory.Options();
+                        bitmap = BitmapFactory.decodeFile(imageFiles.get(0).getAbsolutePath(), bmOptions);
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+                        Picasso.get()
+                                .load(imageFiles.get(0))
+                                .fit()
+                                .centerCrop()
+                                .into(mUserPhotoImageView);
+
+
+                        byteArray = stream.toByteArray();
+
+                        break;
+                }
+            }
+
+            @Override
+            public void onCanceled(EasyImage.ImageSource source, int type) {
+                //Cancel handling, you might wanna remove taken photo if it was canceled
+                if (source == EasyImage.ImageSource.CAMERA) {
+                    File photoFile = EasyImage.lastlyTakenButCanceledPhoto(UpdateProfileActivity.this);
+                    if (photoFile != null) photoFile.delete();
+                }
+            }
+        });
+
     }
 
     private void updateUserName(String newDisplayName){
@@ -265,6 +329,45 @@ public class UpdateProfileActivity extends AppCompatActivity {
 
 
 
+    public static void compreesImageByWidth(File imgFileOrig) throws IOException {
+        // we'll start with the original picture already open to a file
+        Bitmap b = BitmapFactory.decodeFile(imgFileOrig.getAbsolutePath());
+// original measurements
+        int origWidth = b.getWidth();
+        int origHeight = b.getHeight();
 
+        final int destWidth = 1000;//or the width you need
 
+        if (origWidth > destWidth) {
+            // picture is wider than we want it, we calculate its target height
+            int destHeight = origHeight / (origWidth / destWidth);
+            // we create an scaled bitmap so it reduces the image, not just trim it
+            Bitmap b2 = Bitmap.createScaledBitmap(b, destWidth, destHeight, false);
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            // compress to the format you want, JPEG, PNG...
+            // 70 is the 0-100 quality percentage
+            b2.compress(Bitmap.CompressFormat.JPEG, 70, outStream);
+            // we save the file, at least until we have made use of it
+            File f = new File(imgFileOrig.getAbsolutePath());
+            f.createNewFile();
+            //write the bytes in file
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(outStream.toByteArray());
+            // remember close de FileOutput
+            fo.close();
+        }
+    }
+
+    private void onPhotosReturned(List<File> returnedPhotos) {
+       // photos.addAll(returnedPhotos);
+       // imagesAdapter.notifyDataSetChanged();
+       // recyclerView.scrollToPosition(photos.size() - 1);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Clear any configuration that was done!
+        EasyImage.clearConfiguration(this);
+        super.onDestroy();
+    }
 }

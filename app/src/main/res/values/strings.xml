@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">FireBase Chat Demo</string>
     <string name="loading">Loading...please wait</string>
+    <string name="invitation_yes">yes</string>
+    <string name="invitation_del_no">no</string>
+    <string name="choose_photo_title">choose photo title</string>
 </resources>

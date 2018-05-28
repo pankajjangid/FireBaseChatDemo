@@ -184,7 +184,11 @@ public class ChatActivity extends AppCompatActivity {
 
 
         /**sets title bar with recepient name**/
-        queryRecipientName(mReceiverId);
+        try {
+            queryRecipientName(mReceiverId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void querymessagesBetweenThisUserAndClickedUser(){
@@ -352,7 +356,7 @@ public class ChatActivity extends AppCompatActivity {
             /**convert bitmap to byte array to store in firebase storage**/
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             assert imageBitmap != null;
-        //    imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+           imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             byteArray = stream.toByteArray();
 
             uploadChatImageImage();

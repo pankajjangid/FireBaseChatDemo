@@ -122,9 +122,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         newUser.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
+                                progressDialog.dismiss();
 
                                 if (task.isSuccessful()) {
-                                    progressDialog.dismiss();
 
                                     Log.d(TAG, "User profile updated.");
                                     /***CREATE USER IN FIREBASE DB AND REDIRECT ON SUCCESS**/

@@ -54,6 +54,7 @@ public class ChatUsersActivity extends AppCompatActivity {
             mUsersRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
+                    mUserList.clear();
                     for (DataSnapshot snap : dataSnapshot.getChildren()) {
 
                         User user = snap.getValue(User.class);
